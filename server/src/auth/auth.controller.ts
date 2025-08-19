@@ -43,7 +43,11 @@ export class AuthController {
         // from: 'noreply@nestjs.com', // sender address
         subject: 'Lê Quốc Huy', // Subject line
         text: 'welcome', // plaintext body
-        html: '<b>Hello World</b>', // HTML body content
+        template : "register", // HTML body content
+        context:{
+          name: "Lê Quốc Huy",
+          activationCode: 123456
+        }
       })
       
     return "This is a test mail";

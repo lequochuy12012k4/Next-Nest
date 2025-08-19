@@ -21,6 +21,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 @Module({
   imports: [
     AppModule,
+    MailerModule,
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
@@ -50,24 +51,24 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
           // secure: false,
           auth: {
             user: configService.get<string>('MAIL_USER'),
-            pass: configService.get<string>('MAIL_PASSWORD') || ''  ,
+            pass: configService.get<string>('MAIL_PASSWORD'),
           },
         },
         defaults: {
           from: '"No Reply" <no-reply@localhost>',
         },
         
+        template: {
+          dir: process.cwd() + '/src/mail/templates/',
+          adapter: new HandlebarsAdapter(), // or new PugAdapter() or new EjsAdapter()
+          options: {
+            strict: true,
+          },
+        },
       }),
       inject: [ConfigService],
 
       // preview: true,
-      // template: {
-      //   dir: process.cwd() + '/template/',
-      //   adapter: new HandlebarsAdapter(), // or new PugAdapter() or new EjsAdapter()
-      //   options: {
-      //     strict: true,
-      //   },
-      // },
     }),
   ],
   controllers: [AppController],
