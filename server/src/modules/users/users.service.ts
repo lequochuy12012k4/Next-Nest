@@ -9,13 +9,16 @@ import aqp from 'api-query-params';
 import { CreateAuthDto } from 'src/auth/dto/create-auth.dto';
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
+import { MailerService } from '@nestjs-modules/mailer';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
 
   constructor(@InjectModel(Users.name)
   private usersModel: Model<Users>,
-
+  private  readonly mailService: MailerService,
+  private readonly configService: ConfigService
   ) { }
 
   isEmailExist = async (email: string) => {
@@ -89,16 +92,32 @@ export class UsersService {
       throw new BadRequestException("Email already exists: " + email);
     }
     const hashPassword = await hashPasswordHelper(password);
+    const code_id = uuidv4();
+    const code_expired_value = this.configService.get<string>('CODE_EXPIRED');
+    const code_expired_unit = this.configService.get<string>('CODE_EXPIRED_TIME_UNIT');
     const user = await this.usersModel.create({
       name, email, password: hashPassword,
       isActive : false,
-      code_id: uuidv4(),
-      code_expired: dayjs().add(1, 'minute'),
+      code_id: code_id,
+      code_expired: dayjs().add(  
+        parseInt(<any>code_expired_value, 10), // Parse to integer
+        code_expired_unit as dayjs.ManipulateType // Cast to correct type
+      )
     })
 
+    this.mailService.sendMail({
+      to: user.email, // list of receivers
+      // from: 'noreply@nestjs.com', // sender address
+      subject: 'Activate your account ChillingCoffee', // Subject line
+      template : "register", // HTML body content
+      context:{
+        name: user?.name ?? user.email,
+        activationCode: code_id
+      }
+    })
+    
     return{
       _id : user._id,
     }
-
   }
 }
