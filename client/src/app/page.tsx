@@ -1,5 +1,14 @@
+import Footer from "./components/client/Footer";
+import Hero from "./components/client/HomeContext/HomeHero";
+import HomeContext from "./components/client/HomeContext";
+import Navbar from "./components/client/Navbar";
+
 export default function Home() {
   return (
-    <div className="text-red-600 underline font-bold bg-blue-500">Hello World</div>
+    <>
+      <Navbar/>
+      <HomeContext/>
+      <Footer/>
+    </>
   );
 }
