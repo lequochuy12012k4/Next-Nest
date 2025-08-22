@@ -32,5 +32,12 @@ async function bootstrap() {
     module.hot.accept();
     module.hot.dispose(() => app.close());
   }
+  return app;
 }
+
+export const vercel = async (req, res) => {
+  const app = await bootstrap();
+  const server = app.getHttpAdapter().getInstance();
+  server(req, res);
+};
 bootstrap();

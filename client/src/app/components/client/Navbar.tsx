@@ -31,7 +31,8 @@ const Navbar: React.FC = () => {
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 py-3">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center relative">
+          {/* Left: Logo and desktop title */}
           <Link href="/" className="flex items-center space-x-4" onClick={closeMenu}>
             <Image
               src={ChillingCoffeeLogo}
@@ -45,6 +46,12 @@ const Navbar: React.FC = () => {
             </span>
           </Link>
 
+          {/* Center: ChillingCoffee for mobile */}
+          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 md:hidden">
+            <span className="text-lg font-bold text-gray-800">ChillingCoffee</span>
+          </div>
+
+          {/* Right: Menu and account */}
           <div className="hidden md:flex items-center space-x-8">
             <Link href="/products" className="text-gray-600 hover:text-[rgba(232,220,182,1)] font-medium">Products</Link>
             <Link href="/rewards" className="text-gray-600 hover:text-[rgba(232,220,182,1)] font-medium">Rewards</Link>
@@ -80,10 +87,10 @@ const Navbar: React.FC = () => {
             )}
           </div>
 
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center space-x-2">
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="text-gray-800 focus:outline-none"
+              className="text-gray-800 focus:outline-none ml-2"
               aria-label="Toggle menu"
             >
               <svg
@@ -98,14 +105,14 @@ const Navbar: React.FC = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12" 
+                    d="M6 18L18 6M6 6l12 12"
                   />
                 ) : (
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M4 6h16M4 12h16M4 18h16" 
+                    d="M4 6h16M4 12h16M4 18h16"
                   />
                 )}
               </svg>
