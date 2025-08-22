@@ -5,11 +5,28 @@ import Link from 'next/link';
 import Image from 'next/image';
 import ChillingCoffeeLogo from '@/../public/Navbar/ChillingCoffee_logo.png';
 import AccountLogo from '@/../public/Navbar/user.png'; // Adjust the path as necessary
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useSession } from 'next-auth/react';
 
 const Navbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const { user, logout } = useAuth();
+  const { data: session } = useSession();
 
   const closeMenu = () => setMenuOpen(false);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      closeMenu();
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
+
+  const sessionUserName = session?.user?.name || (session?.user as any)?.email;
+  const displayName = user?.name || user?.email || sessionUserName || 'Account';
+  const isLoggedIn = Boolean(user) || Boolean(session?.user);
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -32,14 +49,35 @@ const Navbar: React.FC = () => {
             <Link href="/products" className="text-gray-600 hover:text-[rgba(232,220,182,1)] font-medium">Products</Link>
             <Link href="/rewards" className="text-gray-600 hover:text-[rgba(232,220,182,1)] font-medium">Rewards</Link>
             <Link href="/gift-cards" className="text-gray-600 hover:text-[rgba(232,220,182,1)] font-medium">Gift Cards</Link>
-            <Link href="/login" className="ml-4">
-              <Image
-                src={AccountLogo}
-                alt="User Icon"
-                width={32}
-                height={32}
-              />
-            </Link>
+            
+            {isLoggedIn ? (
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <Image
+                    src={AccountLogo}
+                    alt="User Icon"
+                    width={32}
+                    height={32}
+                  />
+                  <span className="text-sm font-medium text-gray-700">{displayName}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm text-gray-600 hover:text-[rgba(75,61,35,1)] font-medium"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <Link href="/login" className="ml-4">
+                <Image
+                  src={AccountLogo}
+                  alt="User Icon"
+                  width={32}
+                  height={32}
+                />
+              </Link>
+            )}
           </div>
 
           <div className="md:hidden">
@@ -86,14 +124,35 @@ const Navbar: React.FC = () => {
           <Link href="/rewards" className="text-gray-700 text-lg" onClick={closeMenu}>Rewards</Link>
           <Link href="/gift-cards" className="text-gray-700 text-lg" onClick={closeMenu}>Gift Cards</Link>
           <hr className="w-3/4 my-2" />
-          <Link href="/login" className="flex items-center space-x-2 text-lg text-green-700" onClick={closeMenu}>
-             <Image
-                src={AccountLogo} // Replace with your user icon path
-                alt="User Icon"
-                width={28}
-                height={28}
-             />
-          </Link>
+          
+          {isLoggedIn ? (
+            <div className="flex flex-col items-center space-y-3">
+              <div className="flex items-center space-x-2 text-lg text-green-700">
+                <Image
+                  src={AccountLogo}
+                  alt="User Icon"
+                  width={28}
+                  height={28}
+                />
+                <span>{displayName}</span>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="text-lg text-red-600 hover:text-red-800 font-medium"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <Link href="/login" className="flex items-center space-x-2 text-lg text-green-700" onClick={closeMenu}>
+               <Image
+                  src={AccountLogo}
+                  alt="User Icon"
+                  width={28}
+                  height={28}
+               />
+            </Link>
+          )}
         </div>
       </div>
     </nav>

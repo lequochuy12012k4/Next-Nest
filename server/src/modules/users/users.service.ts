@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { use } from 'passport';
 
 @Injectable()
 export class UsersService {
@@ -63,12 +64,108 @@ export class UsersService {
     return { result, totalPages };
   }
 
+  async findById(id: string) {
+    if (mongoose.isValidObjectId(id)) {
+      return this.usersModel.findById(id);
+    } else {
+      throw new BadRequestException("Id is not valid: " + id);
+    }
+  }
+
   findOne(id: number) {
     return `This action returns a #${id} user`;
   }
 
   async findByEmail(email: string) {
     return this.usersModel.findOne({ email });
+  }
+
+  async findByResetToken(token: string) {
+    return this.usersModel.findOne({ reset_password_token: token });
+  }
+
+  async findByActivationCode(code: string) {
+    return this.usersModel.findOne({ code_id: code });
+  }
+
+  async activateAccount(userId: string) {
+    return await this.usersModel.updateOne(
+      { _id: userId },
+      { 
+        isActive: true,
+        code_id: null,
+        code_expired: null
+      }
+    );
+  }
+
+  async setResetToken(userId: string, token: string, expires: Date) {
+    return this.usersModel.updateOne(
+      { _id: userId },
+      { reset_password_token: token, reset_password_expires: expires }
+    );
+  }
+
+  async clearResetToken(userId: string) {
+    return this.usersModel.updateOne(
+      { _id: userId },
+      { $unset: { reset_password_token: 1, reset_password_expires: 1 } }
+    );
+  }
+
+  async updatePassword(userId: string, newPassword: string) {
+    const hashPassword = await hashPasswordHelper(newPassword);
+    return this.usersModel.updateOne(
+      { _id: userId },
+      { password: hashPassword }
+    );
+  }
+
+  async sendResetPasswordEmail(email: string, token: string) {
+    const resetUrl = `${this.configService.get<string>('CLIENT_URL') || 'http://localhost:3000'}/reset-password?token=${encodeURIComponent(token)}`;
+    await this.mailService.sendMail({
+      to: email,
+      subject: 'Reset your ChillingCoffee password',
+      template: 'reset-password',
+      context: {
+        resetUrl,
+      },
+    });
+    return resetUrl;
+  }
+
+  async createGoogleUser(googleUserData: { email: string; name: string; googleId?: string; image?: string }) {
+    const { email, name, googleId, image } = googleUserData;
+    
+    // Check if user already exists
+    const existingUser = await this.findByEmail(email);
+    if (existingUser) {
+      throw new BadRequestException("User with this email already exists");
+    }
+
+    // Create new Google OAuth user
+    const user = await this.usersModel.create({
+      email,
+      name,
+      googleId,
+      image,
+      isActive: true, // Google users are automatically active
+      accout_type: 'google',
+      role: 'user'
+    });
+
+    return user;
+  }
+
+  async updateGoogleInfo(userId: string, googleInfo: { googleId?: string; image?: string }) {
+    return await this.usersModel.updateOne(
+      { _id: userId },
+      { 
+        googleId: googleInfo.googleId,
+        image: googleInfo.image,
+        accout_type: 'google'
+      }
+    );
   }
 
   async update(updateUserDto: UpdateUserDto) {

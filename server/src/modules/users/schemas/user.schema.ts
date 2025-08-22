@@ -37,6 +37,15 @@ export class Users {
 
   @Prop()
   code_expired : Date;
+
+  @Prop()
+  googleId: string;
+
+  @Prop()
+  reset_password_token: string;
+
+  @Prop()
+  reset_password_expires: Date;
 }
 
 export const UsersSchema = SchemaFactory.createForClass(Users);

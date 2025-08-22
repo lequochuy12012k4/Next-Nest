@@ -13,20 +13,16 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { RestaurantsModule } from './modules/restaurants/restaurants.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { AuthModule } from './auth/auth.module';
-import { JwtAuthGuard } from './auth/passport/jwt-auth.guard';
-import { APP_GUARD } from '@nestjs/core';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 
 @Module({
   imports: [
-    AppModule,
-    MailerModule,
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI'),
+        uri: configService.get<string>('MONGODB_URI') || 'mongodb://localhost:27017/chillingcoffee',
       }),
       inject: [ConfigService],
     }),
@@ -38,7 +34,8 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
     OrderDetailModule,
     OrdersModule,
     RestaurantsModule,
-    ReviewsModule, AuthModule,
+    ReviewsModule, 
+    AuthModule,
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -50,8 +47,8 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
           // ignoreTLS: true,
           // secure: false,
           auth: {
-            user: configService.get<string>('MAIL_USER'),
-            pass: configService.get<string>('MAIL_PASSWORD'),
+            user: configService.get<string>('MAIL_USER') || 'test@example.com',
+            pass: configService.get<string>('MAIL_PASSWORD') || 'test-password',
           },
         },
         defaults: {
@@ -74,10 +71,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
   controllers: [AppController],
   providers: [
     AppService,
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard, // Assuming you have a global auth guard in AuthModule
-    }
+    // Removed the global JWT guard that was protecting all routes
   ],
 })
 export class AppModule { }

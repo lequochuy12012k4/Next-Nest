@@ -1,14 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  images:{
-    remotePatterns:[
-      {
-        protocol: "https",
-        hostname: "upload.wikimedia.org",
-      }
-    ]
-  }
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
+  },
+  images: {
+    domains: ['localhost'],
+  },
 };
 
 export default nextConfig;
