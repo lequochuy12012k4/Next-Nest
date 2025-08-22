@@ -217,4 +217,25 @@ export class UsersService {
       _id : user._id,
     }
   }
+
+  async createAdminUser() {
+    const adminEmail = 'admin@gmail.com';
+    const existingAdmin = await this.findByEmail(adminEmail);
+    
+    if (existingAdmin) {
+      return existingAdmin;
+    }
+
+    const hashPassword = await hashPasswordHelper('admin');
+    const adminUser = await this.usersModel.create({
+      name: 'Admin',
+      email: adminEmail,
+      password: hashPassword,
+      isActive: true,
+      role: 'admin',
+      accout_type: 'local'
+    });
+
+    return adminUser;
+  }
 }

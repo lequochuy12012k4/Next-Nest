@@ -27,10 +27,18 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload = { email: user.email, name: user.name, sub: user._id };
-    return {
+    const payload = { email: user.email, name: user.name, sub: user._id, role: user.role };
+    const response = {
       access_token: this.jwtService.sign(payload),
+      user: {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role
+      }
     };
+    console.log('Login response:', response); // Debug log
+    return response;
   }
 
   async googleAuth(googleAuthDto: GoogleAuthDto) {

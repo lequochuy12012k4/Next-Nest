@@ -12,6 +12,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  token: string | null;
   loading: boolean;
   login: (token: string, email: string) => void;
   logout: () => void;
@@ -34,6 +35,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,6 +44,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const email = localStorage.getItem('userEmail');
       
       if (token && email) {
+        setToken(token);
         try {
           const response = await fetch('/api/auth/profile', {
             headers: {
@@ -56,11 +59,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             // Token is invalid, clear storage
             localStorage.removeItem('authToken');
             localStorage.removeItem('userEmail');
+            setToken(null);
           }
         } catch (error) {
           console.error('Error fetching user profile:', error);
           localStorage.removeItem('authToken');
           localStorage.removeItem('userEmail');
+          setToken(null);
         }
       }
       setLoading(false);
@@ -72,6 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = (token: string, email: string) => {
     localStorage.setItem('authToken', token);
     localStorage.setItem('userEmail', email);
+    setToken(token);
     // Fetch user profile and set user state
     fetchUserProfile(token);
   };
@@ -81,6 +87,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userEmail');
     setUser(null);
+    setToken(null);
     
     // Also sign out from NextAuth.js to clear Google session
     try {
@@ -113,6 +120,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const value: AuthContextType = {
     user,
+    token,
     loading,
     login,
     logout,

@@ -3,6 +3,7 @@ import AdminContent from "@/app/components/admin/layout/admin.content";
 import AdminFooter from "@/app/components/admin/layout/admin.footer";
 import AdminHeader from "@/app/components/admin/layout/admin.header";
 import AdminSidebar from "@/app/components/admin/layout/admin.sidebar";
+import AdminGuard from "@/app/components/admin/AdminGuard";
 import { Layout } from "antd";
 
 export default function AdminLayout({
@@ -11,7 +12,7 @@ export default function AdminLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <>
+        <AdminGuard>
             <Layout>
                 <AdminSidebar />
                 <Layout>
@@ -22,6 +23,6 @@ export default function AdminLayout({
                     <AdminFooter />
                 </Layout>
             </Layout>
-        </>
+        </AdminGuard>
     );
 }

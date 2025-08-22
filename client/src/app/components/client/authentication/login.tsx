@@ -47,9 +47,34 @@ export default function Login() {
   // Auto-complete login when NextAuth session is ready (Google sign-in)
   useEffect(() => {
     if (status === 'authenticated' && session?.accessToken) {
-      // Save token to our AuthContext and go home
+      // Save token to our AuthContext
       login(session.accessToken, session.userEmail || session.user?.email || '');
-      router.push('/');
+
+      // Check if user is admin and redirect accordingly
+      // For Google users, we need to check their role from the server
+      const checkUserRole = async () => {
+        try {
+          const response = await fetch('/api/auth/profile', {
+            headers: {
+              'Authorization': `Bearer ${session.accessToken}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const userData = await response.json();
+            const isAdmin = userData.role === 'admin';
+            router.push(isAdmin ? '/admin' : '/');
+          } else {
+            router.push('/');
+          }
+        } catch (error) {
+          console.error('Error checking user role:', error);
+          router.push('/');
+        }
+      };
+
+      checkUserRole();
     }
   }, [status, session, login, router]);
 
@@ -77,8 +102,14 @@ export default function Login() {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Login response:', data); // Debug log
         login(data.access_token, formData.email);
-        router.push('/');
+        const isAdmin = data.user?.role === 'admin';
+        console.log('Is admin:', isAdmin); // Debug log
+        console.log('Redirecting to:', isAdmin ? '/admin' : '/');
+        console.log('About to call router.push...');
+        router.push(isAdmin ? '/admin' : '/');
+        console.log('router.push called');
       } else {
         const errorData = await response.json();
         const errorMessage = errorData.message || 'Login failed';
@@ -101,8 +132,8 @@ export default function Login() {
     try {
       setError('');
       setLoading(true);
-      // Send user back to home after Google completes
-      await signIn('google', { callbackUrl: '/' });
+      // Google sign-in will be handled by the useEffect that checks session
+      await signIn('google', { callbackUrl: '/login' });
     } catch (err) {
       setError('Google sign-in failed. Please try again.');
     } finally {
@@ -140,20 +171,20 @@ export default function Login() {
         )}
 
         <form onSubmit={onFinish} className="space-y-6">
-           <div>
+          <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-             Email
+              Email
             </label>
             <div className="mt-1">
-              <input 
-                id="email" 
-                name="email" 
-                type="email" 
-                autoComplete="email" 
-                required 
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
                 value={formData.email}
                 onChange={handleInputChange}
-                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[rgba(75,61,35,1)] focus:border-[rgba(75,61,35,1)] hover:border-[rgba(75,61,35,1)] sm:text-sm" 
+                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[rgba(75,61,35,1)] focus:border-[rgba(75,61,35,1)] hover:border-[rgba(75,61,35,1)] sm:text-sm"
               />
             </div>
           </div>
@@ -163,19 +194,19 @@ export default function Login() {
               Password
             </label>
             <div className="mt-1">
-              <input 
-                id="password" 
-                name="password" 
-                type="password" 
-                autoComplete="current-password" 
-                required 
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
                 value={formData.password}
                 onChange={handleInputChange}
-                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[rgba(75,61,35,1)] focus:border-[rgba(75,61,35,1)] hover:border-[rgba(75,61,35,1)] sm:text-sm" 
+                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[rgba(75,61,35,1)] focus:border-[rgba(75,61,35,1)] hover:border-[rgba(75,61,35,1)] sm:text-sm"
               />
             </div>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
             <div className="flex items-center">
               <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 text-green-700 border-gray-300 rounded focus:ring-green-600" />
@@ -187,8 +218,8 @@ export default function Login() {
           </div>
 
           <div>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loading}
               className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[rgba(75,61,35,1)] hover:bg-[rgba(232,220,182,1)] hover:text-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -223,14 +254,14 @@ export default function Login() {
         </div>
 
         <div className="mt-8 text-center text-sm">
-            <p className="text-gray-600">
-                New to ChillingCoffee?{' '}
-                <Link href="/register">
-                    <span className="font-medium text-[rgba(75,61,35,1)] hover:text-[rgba(232,220,182,1)] cursor-pointer">
-                        Create an account
-                    </span>
-                </Link>
-            </p>
+          <p className="text-gray-600">
+            New to ChillingCoffee?{' '}
+            <Link href="/register">
+              <span className="font-medium text-[rgba(75,61,35,1)] hover:text-[rgba(232,220,182,1)] cursor-pointer">
+                Create an account
+              </span>
+            </Link>
+          </p>
         </div>
       </div>
     </div>

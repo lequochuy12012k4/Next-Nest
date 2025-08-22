@@ -38,4 +38,10 @@ export class UsersController {
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
+
+  @Post('create-admin')
+  @Public()
+  async createAdmin() {
+    return this.usersService.createAdminUser();
+  }
 }
