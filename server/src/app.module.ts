@@ -47,8 +47,8 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
           // ignoreTLS: true,
           // secure: false,
           auth: {
-            user: configService.get<string>('MAIL_USER') || 'test@example.com',
-            pass: configService.get<string>('MAIL_PASSWORD') || 'test-password',
+            user: configService.get<string>('MAIL_USER'),
+            pass: configService.get<string>('MAIL_PASSWORD'),
           },
         },
         defaults: {

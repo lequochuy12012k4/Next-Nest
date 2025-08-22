@@ -122,16 +122,29 @@ export class UsersService {
   }
 
   async sendResetPasswordEmail(email: string, token: string) {
-    const resetUrl = `${this.configService.get<string>('CLIENT_URL') || 'http://localhost:3000'}/reset-password?token=${encodeURIComponent(token)}`;
-    await this.mailService.sendMail({
-      to: email,
-      subject: 'Reset your ChillingCoffee password',
-      template: 'reset-password',
-      context: {
-        resetUrl,
-      },
-    });
-    return resetUrl;
+    try {
+      const resetUrl = `${this.configService.get<string>('CLIENT_URL') || 'http://localhost:3000'}/reset-password?token=${encodeURIComponent(token)}`;
+      
+      // Get user info to include name in email
+      const user = await this.findByEmail(email);
+      const userName = user?.name || email;
+      
+      await this.mailService.sendMail({
+        to: email,
+        subject: 'Reset your ChillingCoffee password',
+        template: 'reset-password',
+        context: {
+          resetUrl,
+          name: userName,
+        },
+      });
+      return resetUrl;
+    } catch (error) {
+      console.error('Error sending reset password email:', error);
+      // Return the reset URL even if email fails, so the user can still reset their password
+      const resetUrl = `${this.configService.get<string>('CLIENT_URL') || 'http://localhost:3000'}/reset-password?token=${encodeURIComponent(token)}`;
+      return resetUrl;
+    }
   }
 
   async createGoogleUser(googleUserData: { email: string; name: string; googleId?: string; image?: string }) {

@@ -111,17 +111,23 @@ export class AuthService {
   }
 
   async forgotPassword(dto: ForgotPasswordDto) {
-    const user = await this.usersService.findByEmail(dto.email);
-    if (!user) {
-      // avoid user enumeration
+    try {
+      const user = await this.usersService.findByEmail(dto.email);
+      if (!user) {
+        // avoid user enumeration
+        return { message: 'If the email exists, a reset link has been sent.' };
+      }
+
+      const token = this.jwtService.sign({ sub: user._id, email: user.email }, { expiresIn: '1h' });
+      const expires = dayjs().add(1, 'hour').toDate();
+      await this.usersService.setResetToken(user._id.toString(), token, expires);
+      const resetUrl = await this.usersService.sendResetPasswordEmail(user.email, token);
+      return { message: 'If the email exists, a reset link has been sent.', resetUrl };
+    } catch (error) {
+      console.error('Error in forgotPassword:', error);
+      // Return a generic message to avoid user enumeration
       return { message: 'If the email exists, a reset link has been sent.' };
     }
-
-    const token = this.jwtService.sign({ sub: user._id, email: user.email }, { expiresIn: '1h' });
-    const expires = dayjs().add(1, 'hour').toDate();
-    await this.usersService.setResetToken(user._id.toString(), token, expires);
-    const resetUrl = await this.usersService.sendResetPasswordEmail(user.email, token);
-    return { message: 'If the email exists, a reset link has been sent.', resetUrl };
   }
 
   async resetPassword(dto: ResetPasswordDto) {
