@@ -131,7 +131,14 @@ export class UsersService {
       }else{
         resetUrl = `${serverUrl}/reset-password?token=${encodeURIComponent(token)}`;
       }
-      // Get user info to include name in email
+      
+      let mainUrl;
+      if(serverUrl===""){
+        mainUrl = clientUrl;
+      }else{
+        mainUrl = serverUrl;
+      }
+
       const user = await this.findByEmail(email);
       const userName = user?.name || email;
       
@@ -140,6 +147,7 @@ export class UsersService {
         subject: 'Reset your ChillingCoffee password',
         template: 'reset-password',
         context: {
+          mainUrl,
           resetUrl,
           name: userName,
         },
@@ -207,6 +215,14 @@ export class UsersService {
     if (isEmailExist) {
       throw new BadRequestException("Email already exists: " + email);
     }
+    const clientUrl = this.configService.get<string>('CLIENT_URL');
+      const serverUrl = this.configService.get<string>('SERVER_LINK');
+    let mainUrl;
+      if(serverUrl===""){
+        mainUrl = clientUrl;
+      }else{
+        mainUrl = serverUrl;
+      }
     const hashPassword = await hashPasswordHelper(password);
     const code_id = uuidv4();
     const code_expired_value = this.configService.get<string>('CODE_EXPIRED');
@@ -228,7 +244,8 @@ export class UsersService {
       template : "register", // HTML body content
       context:{
         name: user?.name ?? user.email,
-        activationCode: code_id
+        activationCode: code_id,
+        mainUrl
       }
     })
     
