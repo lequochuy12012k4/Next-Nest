@@ -123,8 +123,14 @@ export class UsersService {
 
   async sendResetPasswordEmail(email: string, token: string) {
     try {
-      const resetUrl = `${this.configService.get<string>('CLIENT_URL') || 'http://localhost:3000'}/reset-password?token=${encodeURIComponent(token)}`;
-      
+      let resetUrl;
+      const clientUrl = this.configService.get<string>('CLIENT_URL');
+      const serverUrl = this.configService.get<string>('SERVER_LINK');
+      if(serverUrl===""){
+        resetUrl = `${clientUrl}/reset-password?token=${encodeURIComponent(token)}`;
+      }else{
+        resetUrl = `${serverUrl}/reset-password?token=${encodeURIComponent(token)}`;
+      }
       // Get user info to include name in email
       const user = await this.findByEmail(email);
       const userName = user?.name || email;
