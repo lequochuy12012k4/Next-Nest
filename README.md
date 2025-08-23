@@ -1,4 +1,7 @@
 ChillingCoffe
+
+
+
 #client/.env
 #config Authjs
 AUTH_SECRET = 98968666-fb4e-4858-bab4-7a09c74165ca
